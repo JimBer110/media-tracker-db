@@ -1,0 +1,8 @@
+@startuml RE
+
+abstract test
+diamond test1
+
+test --> test1
+
+@enduml
