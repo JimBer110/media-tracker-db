@@ -1,2 +1,3 @@
 venv
 *.drawio.bkp
+__pycache__
