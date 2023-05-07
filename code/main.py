@@ -6,11 +6,12 @@ import random
 
 tmp = DB_handler()
 
-tmp.create_and_use_db("test_database")
+tmp.create_table("this_is_a_test_table")
 
 del tmp
 
 app = Flask(__name__)
+
 
 @app.route("/")
 def index():
@@ -21,9 +22,11 @@ def index():
 def view_database():
     stringbuilder = "<table>"
     for i in range(50):
-        stringbuilder+="<tr><td>"+str(i)+"</td><td>"+str(random.randint(0,1000000))+"</td></tr>"
-    stringbuilder+="</table>"
+        stringbuilder += "<tr><td>" + \
+            str(i)+"</td><td>"+str(random.randint(0, 1000000))+"</td></tr>"
+    stringbuilder += "</table>"
 
     return stringbuilder
+
 
 app.run()
