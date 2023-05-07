@@ -1,6 +1,14 @@
+from database_handler import DB_handler
 from flask import Flask
 from flask import render_template
 import random
+
+
+tmp = DB_handler()
+
+tmp.create_and_use_db("test_database")
+
+del tmp
 
 app = Flask(__name__)
 
@@ -17,3 +25,5 @@ def view_database():
     stringbuilder+="</table>"
 
     return stringbuilder
+
+app.run()
