@@ -161,13 +161,20 @@ class DB_handler:
 
         dob = user_data["dob"]
 
-        query = "INSERT INTO Users (Username, Email, Password, DOB) VALUES" + \
-            " ('{}', '{}', '{}', '{}')".format(username, email, password, dob)
+        query = "SELECT EXISTS(SELECT * FROM Users WHERE Email = '{}')".format(email)
 
         cursor = self.session.cursor()
 
         cursor.execute(query)
 
-        self.session.commit()
+        if not cursor.fetchone()[0]:
+
+            query = "INSERT INTO Users (Username, Email, Password, DOB)" + \
+                " VALUES ('{}', '{}', '{}', '{}')".format(
+                    username, email, password, dob)
+
+            cursor.execute(query)
+
+            self.session.commit()
 
         cursor.close()
