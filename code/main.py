@@ -6,7 +6,7 @@ import random
 
 tmp = DB_handler()
 
-tmp.create_table("this_is_a_test_table")
+tmp.setup_tables()
 
 del tmp
 
