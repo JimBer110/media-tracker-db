@@ -1,4 +1,5 @@
 import mysql.connector
+import hashlib
 
 
 class DB_handler:
@@ -121,7 +122,7 @@ class DB_handler:
         properties = [("UserID", "INT", "NOT NULL", "AUTO_INCREMENT", "PRIMARY KEY"),
                       ("Username", "VARCHAR(25)"),
                       ("Email", "TEXT"),
-                      ("Password", "VARBINARY(64)"),
+                      ("Password", "VARCHAR(128)"),
                       ("DOB", "DATE")]
 
         self.create_table(table_name, properties)
@@ -149,3 +150,24 @@ class DB_handler:
                       ("GenreID", "INT", "FOREIGN KEY(Genre)")]
 
         self.create_table(table_name, properties)
+
+    def register_user(self, user_data):
+
+        username = user_data["user"]
+        email = user_data["email"]
+
+        password = hashlib.sha512(
+            user_data["pass"].encode("ASCII")).hexdigest()
+
+        dob = user_data["dob"]
+
+        query = "INSERT INTO Users (Username, Email, Password, DOB) VALUES" + \
+            " ('{}', '{}', '{}', '{}')".format(username, email, password, dob)
+
+        cursor = self.session.cursor()
+
+        cursor.execute(query)
+
+        self.session.commit()
+
+        cursor.close()
