@@ -178,3 +178,27 @@ class DB_handler:
             self.session.commit()
 
         cursor.close()
+
+    def login(self, user_data):
+
+        email = user_data["email"]
+        password = hashlib.sha512(
+            user_data["pass"].encode("ASCII")).hexdigest()
+
+        query = "SELECT EXISTS(SELECT * FROM Users WHERE Email " + \
+            "= '{}' AND Password = '{}')".format(email, password)
+
+        cursor = self.session.cursor()
+
+        cursor.execute(query)
+
+        flag = False
+        if cursor.fetchone()[0]:
+            flag = True
+
+        cursor.close()
+
+        if flag:
+            return "Logged in"
+
+        return "User does not exist"
