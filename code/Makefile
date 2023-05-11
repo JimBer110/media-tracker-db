@@ -6,4 +6,6 @@ all:
 install:
 	python3 -m venv venv
 	. venv/bin/activate && pip3 install -r requirements.txt
-	echo -e "host=\nuser=\npass=\ndatabase=" > config.conf
+ifeq (,$(wildcard ./config.conf))
+	echo -e "host=localhost\nuser=user\npass=password\ndatabase=database_name" > config.conf
+endif
