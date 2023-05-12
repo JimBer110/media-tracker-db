@@ -211,8 +211,11 @@ class DB_handler:
                 data[i][j] = data[i][j].replace("'", "''")
 
             query = "INSERT INTO Media (Title, Year, Episodes, Description" + \
-                ") VALUES ('{}', {}, {}, '{}');".format(
-                    data[i][0], data[i][1], data[i][2], data[i][3])
+                ") SELECT '{0}', {1}, {2}, '{3}' FROM Media WHERE Title = " + \
+                "'{0}' AND Year = {1} HAVING COUNT(*) = 0;"
+
+            query = query.format(data[i][0], data[i]
+                                 [1], data[i][2], data[i][3])
 
             cursor.execute(query)
 
