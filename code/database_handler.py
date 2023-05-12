@@ -161,21 +161,19 @@ class DB_handler:
 
         dob = user_data["dob"]
 
-        query = "SELECT EXISTS(SELECT * FROM Users WHERE Email = '{}')".format(email)
+        query = "INSERT INTO Users (Username, Email, Password, DOB) " + \
+            "SELECT '{0}', '{1}', '{2}', '{3}' FROM Users WHERE Email = " + \
+            "'{1}' HAVING COUNT(*) = 0;"
+
+        query = query.format(username, email, password, dob)
+
+        print(query)
 
         cursor = self.session.cursor()
 
         cursor.execute(query)
 
-        if not cursor.fetchone()[0]:
-
-            query = "INSERT INTO Users (Username, Email, Password, DOB)" + \
-                " VALUES ('{}', '{}', '{}', '{}')".format(
-                    username, email, password, dob)
-
-            cursor.execute(query)
-
-            self.session.commit()
+        self.session.commit()
 
         cursor.close()
 
@@ -202,3 +200,22 @@ class DB_handler:
             return "Logged in"
 
         return "User does not exist"
+
+    def insert_media_data(self, data):
+
+        cursor = self.session.cursor()
+
+        for i in range(len(data)):
+
+            for j in range(len(data[i])):
+                data[i][j] = data[i][j].replace("'", "''")
+
+            query = "INSERT INTO Media (Title, Year, Episodes, Description" + \
+                ") VALUES ('{}', {}, {}, '{}');".format(
+                    data[i][0], data[i][1], data[i][2], data[i][3])
+
+            cursor.execute(query)
+
+        self.session.commit()
+
+        cursor.close()

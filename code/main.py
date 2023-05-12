@@ -1,4 +1,5 @@
 from database_handler import DB_handler
+import media_data_loader
 from flask import Flask, request
 from flask import render_template
 import random
@@ -7,6 +8,10 @@ import random
 database = DB_handler()
 
 database.setup_tables()
+
+tmp_data = media_data_loader.read_media_data()
+
+database.insert_media_data(tmp_data)
 
 app = Flask(__name__)
 
