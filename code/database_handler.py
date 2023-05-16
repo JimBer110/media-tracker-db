@@ -1,5 +1,7 @@
 import mysql.connector
 import hashlib
+import uuid
+import datetime
 
 
 class DB_handler:
@@ -123,7 +125,9 @@ class DB_handler:
                       ("Username", "VARCHAR(25)"),
                       ("Email", "TEXT"),
                       ("Password", "VARCHAR(128)"),
-                      ("DOB", "DATE")]
+                      ("DOB", "DATE"),
+                      ("UUID_tmp", "VARCHAR(32)"),
+                      ("UUID_expiry", "DATETIME")]
 
         self.create_table(table_name, properties)
 
@@ -167,8 +171,6 @@ class DB_handler:
 
         query = query.format(username, email, password, dob)
 
-        print(query)
-
         cursor = self.session.cursor()
 
         cursor.execute(query)
@@ -184,20 +186,39 @@ class DB_handler:
             user_data["pass"].encode("ASCII")).hexdigest()
 
         query = "SELECT EXISTS(SELECT * FROM Users WHERE Email " + \
-            "= '{}' AND Password = '{}')".format(email, password)
+            "= '{}' AND Password = '{}');".format(email, password)
 
         cursor = self.session.cursor()
 
         cursor.execute(query)
 
         flag = False
+        tmp_uuid = ""
         if cursor.fetchone()[0]:
             flag = True
+
+        if flag:
+
+            tmp_uuid = uuid.uuid4().hex
+
+            query = "UPDATE Users SET UUID_tmp = '{0}', UUID_expiry = '{1}' WHERE Email = '{2}' AND Password = '{3}';"
+
+            expiry = datetime.datetime.now() + datetime.timedelta(hours=1)
+
+            expiry = expiry.strftime('%Y-%m-%d %H:%M:%S')
+
+            query = query.format(tmp_uuid, expiry, email, password)
+
+            cursor.execute(query)
+
+            self.session.commit()
+
+            print(query)
 
         cursor.close()
 
         if flag:
-            return "Logged in"
+            return tmp_uuid
 
         return "User does not exist"
 

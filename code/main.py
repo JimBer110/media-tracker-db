@@ -1,7 +1,7 @@
 from database_handler import DB_handler
 import media_data_loader
 from flask import Flask, request
-from flask import render_template
+from flask import render_template, make_response
 import random
 
 
@@ -37,6 +37,13 @@ def register():
     return render_template("register.html")
 
 
+@app.route("/login")
+def login():
+    r = render_template("login.html")
+
+    return r
+
+
 @app.route("/api/register", methods=["POST"])
 def api_register():
 
@@ -50,6 +57,25 @@ def api_register():
     database.register_user(data)
 
     return "Hello World"
+
+
+@app.route("/api/login", methods=["POST"])
+def api_login():
+
+    data = {}
+
+    data["email"] = request.form["emailInput"]
+    data["pass"] = request.form["passwordInput"]
+
+    response = database.login(data)
+
+    r = make_response("Logged In")
+
+    cookie = "User_token="+response
+
+    r.headers.set("Set-Cookie", cookie)
+
+    return response
 
 
 app.run()
