@@ -71,11 +71,11 @@ def api_login():
 
     r = make_response("Logged In")
 
-    cookie = "User_token="+response
+    cookie = "User_token="+response+"; Path=/"
 
     r.headers.set("Set-Cookie", cookie)
 
-    return response
+    return r
 
 
 app.run()
