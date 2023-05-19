@@ -1,1 +1,41 @@
 {% extends "base.html" %}
+
+{% block content %}
+
+<table>
+  <thead>
+    <tr>
+      <td>Release Year</td>
+      <td>Title</td>
+      <td>Description</td>
+      <td>Episodes</td>
+    </tr>
+  </thead>
+  <tbody>
+{% for item in media_data %}
+
+<tr>
+  {% for i in range(item|length) %}
+
+  {% if i == item|length - 1 %}
+  
+  <td>
+    <form action="/api/update_media_status" method="post">
+      <input type="hidden" name="" value="{{ item[1] }}">
+      <input type="number" name="current_ep" value="0" size="6">/{{ item[i] }}
+      <input type="submit" value="Save">
+    </form>
+  </td>
+
+  {% else %}
+  <td>{{ item[i] }}</td>
+  {% endif %}
+
+  {% endfor %}
+</tr>
+
+{% endfor %}
+  </tbody>
+</table>
+
+{% endblock content %}

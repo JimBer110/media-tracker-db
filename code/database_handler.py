@@ -244,9 +244,25 @@ class DB_handler:
 
         cursor.close()
 
+    def get_media(self):
+
+        query = "SELECT Media.Year, Media.Title, Media.Description, " + \
+            "UsersMedia.Status, UsersMedia.CurrentEp, Media.Episodes, " + \
+            "UsersMedia.Rating FROM "  # TODO: Finish tripple join
+
+        query = "SELECT Year, Title, Description, Episodes FROM Media;"
+
+        cursor = self.session.cursor()
+
+        cursor.execute(query)
+
+        data = cursor.fetchall()
+
+        return data
+
     def check_validity_of_token(self, token):
 
-        query = "SELECT UUID_expiry FROM Users WHERE UUID_tmp = '{0}'"
+        query = "SELECT UUID_expiry FROM Users WHERE UUID_tmp = '{0}';"
 
         query = query.format(token)
 
@@ -254,8 +270,12 @@ class DB_handler:
 
         cursor.execute(query)
 
-        timestamp = cursor.fetchone()[0]
+        timestamp = cursor.fetchone()
 
         cursor.close()
 
-        return timestamp >= datetime.datetime.now()
+        if (timestamp):
+            timestamp = timestamp[0]
+            return timestamp >= datetime.datetime.now()
+
+        return False

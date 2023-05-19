@@ -28,8 +28,12 @@ def index():
         valid_token = database.check_validity_of_token(user_token)
 
     if (valid_token):
-        # show logged in information
-        pass
+
+        media_list = database.get_media()
+
+        return render_template("index.html", title="Test_Media", media_data=media_list)
+
+        print(media_list)
 
     return render_template("index.html", title="Test")
 
