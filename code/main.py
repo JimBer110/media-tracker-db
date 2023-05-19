@@ -18,6 +18,11 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
+
+    cookies = request.cookies
+
+    print(cookies.get("User_token"))
+
     return render_template("index.html")
 
 
