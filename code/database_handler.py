@@ -243,3 +243,19 @@ class DB_handler:
         self.session.commit()
 
         cursor.close()
+
+    def check_validity_of_token(self, token):
+
+        query = "SELECT UUID_expiry FROM Users WHERE UUID_tmp = '{0}'"
+
+        query = query.format(token)
+
+        cursor = self.session.cursor()
+
+        cursor.execute(query)
+
+        timestamp = cursor.fetchone()[0]
+
+        cursor.close()
+
+        return timestamp >= datetime.datetime.now()

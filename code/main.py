@@ -1,6 +1,6 @@
 from database_handler import DB_handler
 import media_data_loader
-from flask import Flask, request
+from flask import Flask, request, redirect
 from flask import render_template, make_response
 import random
 
@@ -21,9 +21,17 @@ def index():
 
     cookies = request.cookies
 
-    print(cookies.get("User_token"))
+    user_token = cookies.get("User_token")
 
-    return render_template("index.html")
+    valid_token = False
+    if (user_token):
+        valid_token = database.check_validity_of_token(user_token)
+
+    if (valid_token):
+        # show logged in information
+        pass
+
+    return render_template("index.html", title="Test")
 
 
 @app.route("/database")
@@ -74,7 +82,7 @@ def api_login():
 
     response = database.login(data)
 
-    r = make_response("Logged In")
+    r = redirect("/")
 
     cookie = "User_token="+response+"; Path=/"
 
