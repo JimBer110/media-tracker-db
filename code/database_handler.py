@@ -244,13 +244,15 @@ class DB_handler:
 
         cursor.close()
 
-    def get_media(self):
+    def get_media(self, cookie):
 
-        query = "SELECT Media.Year, Media.Title, Media.Description, " + \
-            "UsersMedia.Status, UsersMedia.CurrentEp, Media.Episodes, " + \
-            "UsersMedia.Rating FROM "  # TODO: Finish tripple join
+        query = "SELECT Media.Year, Media.Title, Media.Description," + \
+        "UsersMedia.Status, UsersMedia.CurrentEp, Media.Episodes, "  + \
+        "UsersMedia.Rating FROM Users LEFT JOIN UsersMedia ON Users.UserID " + \
+        "= UsersMedia.UserID LEFT JOIN Media " + \
+        "ON UsersMedia.MediaID = Media.MediaID WHERE Users.UUID_tmp = '{}';" 
 
-        query = "SELECT Year, Title, Description, Episodes FROM Media;"
+        query = query.format(cookie)
 
         cursor = self.session.cursor()
 
@@ -258,7 +260,30 @@ class DB_handler:
 
         data = cursor.fetchall()
 
-        return data
+        query = "SELECT Year, Title, Description, Episodes FROM Media;"
+
+        cursor.execute(query)
+
+        data_tmp = cursor.fetchall()
+
+        print(data)
+
+        cursor.close()
+
+        tmp_lst = []
+        for i in range(len(data_tmp)):
+            flag = False
+            for j in range(len(data)):
+                if data_tmp[i][0] == data[j][0] and data_tmp[i][1] == data[j][1]:
+                    flag = True
+                if flag:
+                    tmp_lst.append(data[j])
+                    break
+            if not flag:
+                tmp = (data_tmp[i][0], data_tmp[i][1], data_tmp[i][2], 0, 0, data_tmp[i][3], 0)
+                tmp_lst.append(tmp)
+
+        return tmp_lst
 
     def check_validity_of_token(self, token):
 

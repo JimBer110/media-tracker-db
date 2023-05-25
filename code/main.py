@@ -29,7 +29,7 @@ def index():
 
     if (valid_token):
 
-        media_list = database.get_media()
+        media_list = database.get_media(user_token)
 
         return render_template("index.html", title="Test_Media", media_data=media_list)
 

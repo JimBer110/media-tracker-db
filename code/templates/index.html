@@ -5,10 +5,12 @@
 <table>
   <thead>
     <tr>
-      <td>Release Year</td>
-      <td>Title</td>
-      <td>Description</td>
-      <td>Episodes</td>
+      <th>Release Year</th>
+      <th>Title</th>
+      <th>Description</th>
+      <th>Status</th>
+      <th>Episodes</th>
+      <th>Rating</th>
     </tr>
   </thead>
   <tbody>
@@ -17,15 +19,17 @@
 <tr>
   {% for i in range(item|length) %}
 
-  {% if i == item|length - 1 %}
+  {% if i == 4 %}
   
   <td>
     <form action="/api/update_media_status" method="post">
       <input type="hidden" name="" value="{{ item[1] }}">
-      <input type="number" name="current_ep" value="0" size="6">/{{ item[i] }}
+      <input type="number" name="current_ep" value="{{ item[4] }}" size="6">/{{ item[5] }}
       <input type="submit" value="Save">
     </form>
   </td>
+
+  {% elif i == 5 %}
 
   {% else %}
   <td>{{ item[i] }}</td>
