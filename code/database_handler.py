@@ -52,6 +52,57 @@ class DB_handler:
 
         cursor.execute("USE %s;" % (self.database))
 
+        self.setup_tables()
+
+        query = """CREATE PROCEDURE IF NOT EXISTS insert_update_media_status (IN _UUID_tmp VARCHAR(32), IN _currentEP INT, IN _mediaID INT)
+BEGIN
+DECLARE _userID INT;
+SELECT UserID INTO _userID FROM Users WHERE UUID_tmp = _UUID_tmp;
+IF EXISTS (SELECT 1 FROM UsersMedia WHERE UserID = _userID AND MediaID = _mediaID) THEN
+UPDATE UsersMedia SET CurrentEp = _currentEp WHERE MediaID = _mediaID AND UserID = _userID;
+ELSE
+INSERT INTO UsersMedia (MediaID, UserID, CurrentEp) VALUES (_mediaID, _userID, _currentEp);
+END IF;
+END"""
+
+        cursor.execute(query)
+
+        query = """CREATE TRIGGER IF NOT EXISTS trigger_status
+BEFORE UPDATE
+ON UsersMedia
+FOR EACH ROW
+BEGIN
+DECLARE last_episode INT;
+SELECT Episodes INTO last_episode FROM Media WHERE MediaID = NEW.mediaID;
+IF NEW.CurrentEp = last_episode THEN
+SET NEW.Status = 2;
+ELSEIF NEW.CurrentEp = 0 THEN
+SET NEW.Status = 0;
+ELSE
+SET NEW.Status = 1;
+END IF;
+END"""
+
+        cursor.execute(query)
+
+        query = """CREATE TRIGGER IF NOT EXISTS trigger_status_insert
+BEFORE INSERT
+ON UsersMedia
+FOR EACH ROW
+BEGIN
+DECLARE last_episode INT;
+SELECT Episodes INTO last_episode FROM Media WHERE MediaID = NEW.mediaID;
+IF NEW.CurrentEp = last_episode THEN
+SET NEW.Status = 2;
+ELSEIF NEW.CurrentEp = 0 THEN
+SET NEW.Status = 0;
+ELSE
+SET NEW.Status = 1;
+END IF;
+END"""
+
+        cursor.execute(query)
+
         self.session.commit()
 
         cursor.close()

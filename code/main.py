@@ -7,8 +7,6 @@ import random
 
 database = DB_handler()
 
-database.setup_tables()
-
 tmp_data = media_data_loader.read_genre_data()
 database.insert_genre_data(tmp_data)
 
