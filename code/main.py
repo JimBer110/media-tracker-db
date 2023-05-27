@@ -9,8 +9,10 @@ database = DB_handler()
 
 database.setup_tables()
 
-tmp_data = media_data_loader.read_media_data()
+tmp_data = media_data_loader.read_genre_data()
+database.insert_genre_data(tmp_data)
 
+tmp_data = media_data_loader.read_media_data()
 database.insert_media_data(tmp_data)
 
 app = Flask(__name__)

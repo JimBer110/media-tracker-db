@@ -240,6 +240,55 @@ class DB_handler:
 
             cursor.execute(query)
 
+            query = "INSERT INTO MediaGenre (MediaID, GenreID) VALUES "
+            for j in range(len(data[i][4].split(","))):
+
+                tmp_query = "SELECT GenreID FROM Genre WHERE Name = '{}';"
+
+                tmp_query = tmp_query.format(data[i][4].split(",")[j])
+
+                cursor.execute(tmp_query)
+
+                tmp_genre_id = cursor.fetchone()[0]
+
+                tmp_query = "SELECT MediaID FROM Media WHERE Title = '{0}' AND Year = {1};"
+
+                tmp_query = tmp_query.format(data[i][0], data[i][1])
+
+                cursor.execute(tmp_query)
+
+                tmp_media_id = cursor.fetchone()[0]
+
+                query += "({}, {}),"
+                query = query.format(tmp_media_id, tmp_genre_id)
+
+            query = list(query)
+            query[-1] = ";"
+            query = "".join(query)
+
+            cursor.execute(query)
+
+        self.session.commit()
+
+        cursor.close()
+
+    def insert_genre_data(self, data):
+
+        cursor = self.session.cursor()
+
+        for i in range(len(data)):
+
+            for j in range(len(data[i])):
+                data[i][j] = data[i][j].replace("'", "''")
+
+            query = "INSERT INTO Genre (Name, Description)" + \
+                "SELECT '{0}', '{1}' FROM Genre WHERE Name = " + \
+                "'{0}' HAVING COUNT(*) = 0;"
+
+            query = query.format(data[i][0], data[i][1])
+
+            cursor.execute(query)
+
         self.session.commit()
 
         cursor.close()
