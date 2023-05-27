@@ -19,17 +19,31 @@
 <tr>
   {% for i in range(item|length) %}
 
-  {% if i == 4 %}
+  {% if i == 5 %}
   
   <td>
     <form action="/api/update_media_status" method="post">
-      <input type="hidden" name="" value="{{ item[1] }}">
-      <input type="number" name="current_ep" value="{{ item[4] }}" size="6">/{{ item[5] }}
+      <input type="hidden" name="media_id" value="{{ item[0] }}">
+      <input type="number" name="current_ep" value="{{ item[5] }}" size="6" min="0" max="{{ item[6] }}">/{{ item[6] }}
       <input type="submit" value="Save">
     </form>
   </td>
 
-  {% elif i == 5 %}
+  {% elif i == 6 or i == 0 %}
+
+  {% elif i == 2 %}
+
+  <td><a href="/media/{{ item[0] }}">{{ item[2] }}</a></td>
+
+  {% elif i == 7 %}
+
+  <td>
+    <form action="/api/update_rating" method="post">
+      <input type="hidden" name="media_id" value="{{ item[0] }}">
+      <input type="number" name="input_rating" value="{{ item[7] }}" size="1" min="0" max="5">
+      <input type="submit" name="" value="Rate">
+    </form>
+  </td>
 
   {% else %}
   <td>{{ item[i] }}</td>

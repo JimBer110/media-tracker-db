@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<h1>{{ data[0] }}</h1>
+<h3>{{ data[1] }}</h3>
+<h4>Rating: {{ data[3] }}</h4>
+
+<p>{{ data[2] }}</p>
+
+{% for i in range(4, data|length) %}
+
+{% if i % 2 == 0 %}
+
+{% else %}
+
+<a href="/genre/{{ data[i-1] }}">{{ data[i] }}</a>
+
+{% endif %}
+
+{% endfor %}
+
+
+{% endblock content %}

@@ -67,6 +67,19 @@ END"""
 
         cursor.execute(query)
 
+        query = """CREATE PROCEDURE IF NOT EXISTS insert_update_media_rating (IN _UUID_tmp VARCHAR(32), IN _rating TINYINT, IN _mediaID INT)
+BEGIN
+DECLARE _userID INT;
+SELECT UserID INTO _userID FROM Users WHERE UUID_tmp = _UUID_tmp;
+IF EXISTS (SELECT 1 FROM UsersMedia WHERE UserID = _userID AND MediaID = _mediaID) THEN
+UPDATE UsersMedia SET Rating = _rating WHERE MediaID = _mediaID AND UserID = _userID;
+ELSE
+INSERT INTO UsersMedia (MediaID, UserID, Rating) VALUES (_mediaID, _userID, _rating);
+END IF;
+END"""
+
+        cursor.execute(query)
+
         query = """CREATE TRIGGER IF NOT EXISTS trigger_status
 BEFORE UPDATE
 ON UsersMedia
@@ -94,7 +107,7 @@ DECLARE last_episode INT;
 SELECT Episodes INTO last_episode FROM Media WHERE MediaID = NEW.mediaID;
 IF NEW.CurrentEp = last_episode THEN
 SET NEW.Status = 2;
-ELSEIF NEW.CurrentEp = 0 THEN
+ELSEIF NEW.CurrentEp = 0 OR NEW.CurrentEp IS NULL THEN
 SET NEW.Status = 0;
 ELSE
 SET NEW.Status = 1;
@@ -264,8 +277,6 @@ END"""
 
             self.session.commit()
 
-            print(query)
-
         cursor.close()
 
         if flag:
@@ -291,33 +302,42 @@ END"""
 
             cursor.execute(query)
 
-            query = "INSERT INTO MediaGenre (MediaID, GenreID) VALUES "
-            for j in range(len(data[i][4].split(","))):
+            tmp_query = "SELECT MediaID FROM Media WHERE Title = '{0}' AND Year = {1};"
 
-                tmp_query = "SELECT GenreID FROM Genre WHERE Name = '{}';"
+            tmp_query = tmp_query.format(data[i][0], data[i][1])
 
-                tmp_query = tmp_query.format(data[i][4].split(",")[j])
+            cursor.execute(tmp_query)
 
-                cursor.execute(tmp_query)
+            tmp_media_id = cursor.fetchone()[0]
 
-                tmp_genre_id = cursor.fetchone()[0]
+            query = "SELECT EXISTS(SELECT 1 FROM MediaGenre WHERE MediaID = {});"
 
-                tmp_query = "SELECT MediaID FROM Media WHERE Title = '{0}' AND Year = {1};"
-
-                tmp_query = tmp_query.format(data[i][0], data[i][1])
-
-                cursor.execute(tmp_query)
-
-                tmp_media_id = cursor.fetchone()[0]
-
-                query += "({}, {}),"
-                query = query.format(tmp_media_id, tmp_genre_id)
-
-            query = list(query)
-            query[-1] = ";"
-            query = "".join(query)
+            query = query.format(tmp_media_id)
 
             cursor.execute(query)
+
+            tmp = cursor.fetchone()[0]
+
+            if (not tmp):
+                query = "INSERT INTO MediaGenre (MediaID, GenreID) VALUES "
+                for j in range(len(data[i][4].split(","))):
+
+                    tmp_query = "SELECT GenreID FROM Genre WHERE Name = '{}';"
+
+                    tmp_query = tmp_query.format(data[i][4].split(",")[j])
+
+                    cursor.execute(tmp_query)
+
+                    tmp_genre_id = cursor.fetchone()[0]
+
+                    query += "({}, {}),"
+                    query = query.format(tmp_media_id, tmp_genre_id)
+
+                query = list(query)
+                query[-1] = ";"
+                query = "".join(query)
+
+                cursor.execute(query)
 
         self.session.commit()
 
@@ -346,7 +366,7 @@ END"""
 
     def get_media(self, cookie):
 
-        query = "SELECT Media.Year, Media.Title, Media.Description, " + \
+        query = "SELECT Media.MediaID, Media.Year, Media.Title, Media.Description, " + \
             "UsersMedia.Status, UsersMedia.CurrentEp, Media.Episodes, " + \
             "UsersMedia.Rating FROM Users LEFT JOIN UsersMedia ON " + \
             "Users.UserID = UsersMedia.UserID AND Users.UUID_tmp = '{}' " + \
@@ -362,6 +382,49 @@ END"""
 
         # Convert None to 0
         data = [tuple(0 if i is None else i for i in t) for t in data]
+
+        cursor.close()
+
+        return data
+
+    def get_media_info(self, media_id):
+
+        query = "SELECT Media.Title, Media.Year, Media.Description, AVG(UsersMedia.Rating) FROM Media LEFT JOIN UsersMedia ON Media.MediaID = UsersMedia.MediaID WHERE UsersMedia.MediaID = {};"
+
+        query = query.format(media_id)
+
+        cursor = self.session.cursor()
+
+        cursor.execute(query)
+
+        data_list = list(cursor.fetchone())
+
+        query = "SELECT Genre.GenreID, Genre.Name FROM MediaGenre LEFT JOIN Genre ON Genre.GenreID = MediaGenre.GenreID WHERE MediaGenre.MediaID = {};"
+
+        query = query.format(media_id)
+
+        cursor.execute(query)
+
+        tmp = cursor.fetchall()
+
+        cursor.close()
+
+        for i in range(len(tmp)):
+            for j in range(len(tmp[i])):
+                data_list.append(tmp[i][j])
+
+        return data_list
+
+    def get_genre_info(self, genre_id):
+
+        query = "SELECT Name, Description FROM Genre WHERE GenreID = {};"
+        query = query.format(genre_id)
+
+        cursor = self.session.cursor()
+
+        cursor.execute(query)
+
+        data = cursor.fetchone()
 
         cursor.close()
 
@@ -386,3 +449,32 @@ END"""
             return timestamp >= datetime.datetime.now()
 
         return False
+
+    def update_media_user(self, data):
+
+        query = "CALL insert_update_media_status('{}', {}, {});"
+
+        query = query.format(data["user_token"],
+                             data["current_ep"], data["media"])
+
+        cursor = self.session.cursor()
+
+        cursor.execute(query)
+
+        cursor.close()
+
+        self.session.commit()
+
+    def update_rating(self, data):
+
+        query = "CALL insert_update_media_rating('{}', {}, {});"
+
+        query = query.format(data["user_token"], data["rating"], data["media"])
+
+        cursor = self.session.cursor()
+
+        cursor.execute(query)
+
+        cursor.close()
+
+        self.session.commit()

@@ -38,15 +38,24 @@ def index():
     return render_template("index.html", title="Test")
 
 
-@app.route("/database")
-def view_database():
-    stringbuilder = "<table>"
-    for i in range(50):
-        stringbuilder += "<tr><td>" + \
-            str(i)+"</td><td>"+str(random.randint(0, 1000000))+"</td></tr>"
-    stringbuilder += "</table>"
+@app.route("/media/<m_id>")
+def display_media(m_id):
 
-    return stringbuilder
+    data = database.get_media_info(m_id)
+
+    r = render_template("media.html", data=data)
+
+    return r
+
+
+@app.route("/genre/<g_id>")
+def display_genre(g_id):
+
+    data = database.get_genre_info(g_id)
+
+    r = render_template("genre.html", data=data)
+
+    return r
 
 
 @app.route("/register")
@@ -73,7 +82,7 @@ def api_register():
 
     database.register_user(data)
 
-    return "Hello World"
+    return redirect("/login")
 
 
 @app.route("/api/login", methods=["POST"])
@@ -93,6 +102,40 @@ def api_login():
     r.headers.set("Set-Cookie", cookie)
 
     return r
+
+
+@app.route("/api/update_media_status", methods=["POST"])
+def api_update_status():
+
+    data = {}
+
+    cookies = request.cookies
+
+    data["user_token"] = cookies.get("User_token")
+    data["current_ep"] = request.form["current_ep"]
+    data["media"] = request.form["media_id"]
+
+    database.update_media_user(data)
+
+    r = redirect("/")
+
+    return r
+
+
+@app.route("/api/update_rating", methods=["POST"])
+def api_update_rating():
+
+    data = {}
+
+    cookies = request.cookies
+
+    data["user_token"] = cookies.get("User_token")
+    data["rating"] = request.form["input_rating"]
+    data["media"] = request.form["media_id"]
+
+    database.update_rating(data)
+
+    return redirect("/")
 
 
 app.run()
